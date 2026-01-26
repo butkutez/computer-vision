@@ -306,6 +306,7 @@ div[data-testid="stPlotlyChart"] {
     overflow: hidden !important; 
 }
 
+
 </style>
     """
 

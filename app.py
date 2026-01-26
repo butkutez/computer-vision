@@ -12,13 +12,13 @@ from styles import CSS_CODE, HEADER_HTML, get_result_orb
 # for centralized access across the UI components.
 # ==========================================
 MODEL_RESULTS = {
-    "normal": {"precision": 0.94, "recall": 0.28, "f1": 0.43},
-    "pneumonia": {"precision": 0.70, "recall": 0.99, "f1": 0.82},
-    "accuracy": 0.72,
-    "matrix": [[66, 168], [4, 386]]}
+    "normal": {"precision": 0.91, "recall": 0.85, "f1": 0.88},
+    "pneumonia": {"precision": 0.91, "recall": 0.95, "f1": 0.93},
+    "accuracy": 0.91,
+    "matrix": [[199, 35], [20, 370]]}
 
 # 1. PAGE CONFIGURATION
-st.set_page_config(page_title="PNEUMA AI", page_icon="💠", layout="centered", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="PNEUMA AI", page_icon="💠", layout="wide", initial_sidebar_state="collapsed")
 
 if 'sidebar_state' not in st.session_state:
     st.session_state.sidebar_state = "expanded"
@@ -34,7 +34,7 @@ st.markdown(CSS_CODE, unsafe_allow_html=True)
 # Loads the Keras model using caching to optimize memory usage.
 @st.cache_resource
 def load_my_model():
-    return tf.keras.models.load_model('pneumonia_model.keras')
+    return tf.keras.models.load_model('COMPUTER-VISION/pneumonia_model.keras')
 
 model = load_my_model()
 
@@ -49,7 +49,9 @@ if 'last_file' not in st.session_state:
     st.session_state.last_file = None
 
 # 5. MAIN UPLOAD & DIAGNOSTIC SECTION
-with st.container():
+col_space_1, col_uploader, col_space_2 = st.columns([1, 1, 1])
+
+with col_uploader:
     uploaded_file = st.file_uploader("", type=["jpg", "png", "jpeg"])
 
     if uploaded_file:
@@ -111,107 +113,119 @@ with st.sidebar:
     st.write(f"**Accuracy:** {acc_val}")
     st.markdown("---")
 
-    if st.button("CONFUSION MATRIX"):
-        st.session_state.show_matrix = True
-        st.session_state.show_biometrics = False 
+    if st.button("VIEW SYSTEM ANALYTICS"):
+        st.session_state.show_analytics = True
         st.session_state.sidebar_state = "collapsed"
         st.rerun()
 
-    if st.button("BIOMETRICS MAP"):
-        st.session_state.show_biometrics = True
-        st.session_state.show_matrix = False 
-        st.session_state.sidebar_state = "collapsed"
-        st.rerun()
-
-# 7. CONFUSION MATRIX DISPLAY
-if st.session_state.show_matrix:
+# 7. MERGED ANALYTICS DISPLAY (FINAL BALANCED VERSION)
+if st.session_state.get('show_analytics', False):
     st.markdown("---")
-    st.markdown("<h2 style='text-align: center; color: white; font-weight: 100; letter-spacing: 10px; text-transform: uppercase; font-size: 1.25rem;'>CONFUSION MATRIX</h2>", unsafe_allow_html=True)
-
-    z = MODEL_RESULTS["matrix"]
-    x_labels = ["NORMAL", "PNEUMONIA"]
-    y_labels = ["NORMAL", "PNEUMONIA"]
-    colorscale = [[0, '#0a1a1a'], [1, '#00f2ff']]
-
-    fig = ff.create_annotated_heatmap(
-        z, x=x_labels, y=y_labels, 
-        annotation_text=[[str(val) for val in row] for row in z],
-        colorscale=colorscale,
-        showscale=False
-    )
-
-    fig.data[0].opacity = 0.4  
-    fig.data[0].xgap = 3      
-    fig.data[0].ygap = 3
-
-    fig.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        height=500,
-        margin=dict(t=50, b=50, l=50, r=50),
-        xaxis=dict(title=dict(text="P R E D I C T E D", font=dict(size=10, color='#00f2ff')), side="bottom"),
-        yaxis=dict(title=dict(text="A C T U A L", font=dict(size=10, color='#00f2ff')), autorange="reversed")
-    )
-
-    for i in range(len(fig.layout.annotations)):
-        fig.layout.annotations[i].font.size = 18
-        fig.layout.annotations[i].font.color = 'white'
-        fig.layout.annotations[i].font.family = "Inter"
-
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
     
-    col_x, col_center, col_y = st.columns([1, 1, 1])
-    with col_center:
-        if st.button("CLOSE MATRIX", use_container_width=True):
-            st.session_state.show_matrix = False
-            st.session_state.sidebar_state = "expanded"
-            st.rerun()
+    # MAIN HEADER
+    st.markdown("<h2 style='text-align: center; color: white; font-weight: 100; letter-spacing: 10px; text-transform: uppercase;'>SYSTEM ANALYTICS</h2>", unsafe_allow_html=True)
 
-# 8. BIOMETRIC ANALYSIS DISPLAY
-if st.session_state.show_biometrics:
-    st.markdown("---")
-    st.markdown("<h2 style='text-align: center; color: white; font-weight: 100; letter-spacing: 10px; text-transform: uppercase; font-size: 1.25rem;'>BIOMETRIC ANALYSIS</h2>", unsafe_allow_html=True)
+    col_left, spacer, col_right = st.columns([4, 0.5, 4])
 
-    categories = ['Precision', 'Recall', 'F1-Score', 'Accuracy', 'Specificity']
-    tn, fp, fn, tp = MODEL_RESULTS["matrix"][0][0], MODEL_RESULTS["matrix"][0][1], MODEL_RESULTS["matrix"][1][0], MODEL_RESULTS["matrix"][1][1]
-    spec_val = tn / (tn + fp)
+    with col_left:
+        # SUB-TITLE
+        st.markdown("<h3 style='text-align: center; color: white; font-weight: 100; letter-spacing: 5px; text-transform: uppercase; font-size: 1rem;'>CONFUSION MATRIX</h3>", unsafe_allow_html=True)
+        
+        # --- CONFUSION MATRIX ---
+        z = MODEL_RESULTS["matrix"]
+        fig_matrix = ff.create_annotated_heatmap(
+            z, x=["NORMAL", "PNEUMONIA"], y=["NORMAL", "PNEUMONIA"], 
+            colorscale=[[0, '#0a1a1a'], [1, '#00f2ff']],
+            showscale=False
+        )
+        fig_matrix.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)', 
+            plot_bgcolor='rgba(0,0,0,0)',
+            height=500,
+            margin=dict(t=20, b=100, l=100, r=20),
+            xaxis=dict(tickfont=dict(size=14, color='white'), title=dict(text="P R E D I C T E D", font=dict(size=15, color='#00f2ff'))),
+            yaxis=dict(tickfont=dict(size=14, color='white'), title=dict(text="A C T U A L", font=dict(size=15, color='#00f2ff')), autorange="reversed")
+        )
 
-    pne_values = [
-        MODEL_RESULTS["pneumonia"]["precision"], 
-        MODEL_RESULTS["pneumonia"]["recall"], 
-        MODEL_RESULTS["pneumonia"]["f1"],
-        MODEL_RESULTS["accuracy"],
-        spec_val
-    ]
+        for i in range(len(fig_matrix.layout.annotations)):
+            fig_matrix.layout.annotations[i].font.size = 20
+            fig_matrix.layout.annotations[i].font.color = 'white'
 
-    fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(
-        r=pne_values, theta=categories, fill='toself',
-        fillcolor='rgba(0, 242, 255, 0.2)',
-        line=dict(color='#00f2ff', width=2),
-        marker=dict(color='#00f2ff', size=8),
-        name='Pneumonia Model'
-    ))
+        st.plotly_chart(fig_matrix, use_container_width=True, config={'displayModeBar': False})
 
-    fig.update_layout(
-        polar=dict(
-            bgcolor='rgba(0,0,0,0)',
-            domain=dict(x=[0, 1], y=[0, 1]), 
-            radialaxis=dict(visible=True, range=[0, 1], showticklabels=False, gridcolor='rgba(255, 255, 255, 0.1)', ),
-            angularaxis=dict(gridcolor='rgba(255, 255, 255, 0.1)', tickfont=dict(color='white', size=15, family="Inter"), )
-        ),
-        showlegend=False,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        margin=dict(t=40, b=40, l=40, r=40), 
-        height=500,
-    )
+        # EXPLANATION TEXT (LEFT BOX - General Matrix Info)
+        st.markdown("""
+        <div style='background: rgba(255,255,255,0.05); padding: 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(15px); min-height: 280px;'>
+            <p style='color: #00f2ff; font-size: 0.9rem; letter-spacing: 2px; margin-bottom: 10px; font-weight: bold;'>DIAGNOSTIC ARCHITECTURE</p>
+            <p style='color: white; font-size: 15px; opacity: 0.9; line-height: 1.6;'>
+                A <b>Confusion Matrix</b> is the primary tool for evaluating AI performance. It maps the relationship between predicted outcomes and actual clinical truths. 
+                <br><br>
+                The vertical axis shows the ground truth (Actual), while the horizontal axis shows what the AI predicted. 
+                High values in the diagonal boxes indicate a high-performing model, while values in the off-diagonal areas represent diagnostic errors (False Positives and False Negatives).
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+    with col_right:
+        # SUB-TITLE
+        st.markdown("<h3 style='text-align: center; color: white; font-weight: 100; letter-spacing: 5px; text-transform: uppercase; font-size: 1rem;'>BIOMETRIC METRICS</h3>", unsafe_allow_html=True)
 
-    col_c1, col_c2, col_c3 = st.columns([1, 1, 1])
-    with col_c2:
-        if st.button("EXIT BIOMETRICS", use_container_width=True):
-            st.session_state.show_biometrics = False
+        # --- BIOMETRIC RADAR ---
+        categories = ['Precision', 'Recall', 'F1-Score', 'Accuracy', 'Specificity']
+        tn, fp, fn, tp = MODEL_RESULTS["matrix"][0][0], MODEL_RESULTS["matrix"][0][1], MODEL_RESULTS["matrix"][1][0], MODEL_RESULTS["matrix"][1][1]
+        pne_values = [MODEL_RESULTS["pneumonia"]["precision"], MODEL_RESULTS["pneumonia"]["recall"], MODEL_RESULTS["pneumonia"]["f1"], MODEL_RESULTS["accuracy"], tn/(tn+fp)]
+        
+        categories_closed = categories + [categories[0]]
+        values_closed = pne_values + [pne_values[0]]
+
+        fig_radar = go.Figure(go.Scatterpolar(
+            r=values_closed, theta=categories_closed, fill='toself',
+            fillcolor='rgba(0, 242, 255, 0.2)',
+            line=dict(color='#00f2ff', width=3)
+        ))
+        fig_radar.update_layout(
+            polar=dict(
+                bgcolor='rgba(0,0,0,0)',
+                radialaxis=dict(visible=True, range=[0, 1], gridcolor='rgba(255, 255, 255, 0.1)', showticklabels=False),
+                angularaxis=dict(gridcolor='rgba(255, 255, 255, 0.1)', tickfont=dict(color='white', size=14))
+            ),
+            showlegend=False, paper_bgcolor='rgba(0,0,0,0)',
+            height=500,
+            margin=dict(t=20, b=80, l=80, r=80)
+        )
+        st.plotly_chart(fig_radar, use_container_width=True, config={'displayModeBar': False})
+
+        # EXPLANATION TEXT (RIGHT BOX - Definitions)
+        st.markdown("""
+        <div style='background: rgba(255,255,255,0.05); padding: 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(15px); min-height: 280px;'>
+            <p style='color: #00f2ff; font-size: 0.9rem; letter-spacing: 2px; margin-bottom: 10px; font-weight: bold;'>METRIC PARAMETERS</p>
+            <p style='color: white; font-size: 15px; opacity: 0.9; line-height: 1.6;'>
+                The <b>Biometric Radar</b> provides a geometric representation of model stability. 
+                A larger, more symmetrical shape indicates a well-balanced model.
+                <br><br>
+                <b>Key Metric Definitions:</b>
+            </p>
+            <style>
+                /* This specifically targets the bullet point dots */
+                .white-bullets li::marker {
+                    color: white !important;
+                }
+            </style>
+            <ul class="white-bullets" style='color: white; font-size: 15px; padding-left: 20px;'>
+                <li style='margin-bottom: 8px;'><b>Accuracy:</b> Overall correctness across all diagnostic categories.</li>
+                <li style='margin-bottom: 8px;'><b>Precision:</b> The percentage of pneumonia detections that were actually correct.</li>
+                <li style='margin-bottom: 8px;'><b>Recall:</b> The system's ability to find and identify all pneumonia cases present.</li>
+                <li style='margin-bottom: 8px;'><b>F1-Score:</b> The harmonic mean providing a balance between Precision and Recall.</li>
+                <li><b>Specificity:</b> The ability to correctly rule out healthy lungs as 'Normal'.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # CENTERED CLOSE BUTTON
+    st.markdown("<br>", unsafe_allow_html=True)
+    _, col_btn_center, _ = st.columns([1, 1, 1])
+    with col_btn_center:
+        if st.button("CLOSE ANALYTICS", use_container_width=True):
+            st.session_state.show_analytics = False
             st.session_state.sidebar_state = "expanded"
             st.rerun()

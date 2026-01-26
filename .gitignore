@@ -217,3 +217,16 @@ __marimo__/
 
 data/
 TESTING_Data_exploration_copy.ipynb
+*.keras
+*.h5
+data/
+__pycache__/
+.venv/
+
+COMPUTER-VISION/
+data/
+__pycache__/
+.venv/
+
+*.keras
+COMPUTER-VISION/
