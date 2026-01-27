@@ -1,4 +1,4 @@
-# **Pneuma AI** - Deep Learning X-Ray Diagnostic Assistant
+## **Pneuma AI** - Deep Learning X-Ray Diagnostic Assistant
 
 ![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=flat&logo=Jupyter&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
@@ -9,17 +9,17 @@
 [![Wallpaper](assets/PNEUMA_AI.png)](https://gemini.google.com/app)
 *Image source: [Gemini](https://gemini.google.com/app)*
 
-## Description
+### Description
 Medical imaging interpretation requires years of specialized training. This project bridges the diagnostic gap by utilizing a **Convolutional Neural Network** (CNN) to automate the detection of Pneumonia from chest X-ray images. Built with **TensorFlow/Keras**, the system classifies images into 'Normal' or 'Pneumonia' with high precision, providing radiologists with a secondary "pulse check" on complex cases.
 
 The application is deployed via a custom-engineered **Streamlit** dashboard, featuring real-time diagnostic sequences, biometric analytics, and interpretable heatmaps.
 
 Visit Live Dashboard: [PNEUMA AI](https://computer-vision-pneuma-ai.streamlit.app/)
 
-## Dataset
+### Dataset
 The model was trained using the Chest X-Ray Images (Pneumonia) [Kaggle Dataset](https://www.kaggle.com/paultimothymooney/chest-xray-pneumonia), consisting of 5,863 validated radiographs. The dataset includes pediatric chest X-ray images categorized as Normal or Pneumonia (including both bacterial and viral triggers).
 
-## Installation
+### Installation
 
 1. **Clone the project:**
 
@@ -51,7 +51,7 @@ The model was trained using the Chest X-Ray Images (Pneumonia) [Kaggle Dataset](
     streamlit run app.py
 ```
 
-## Repo Structure
+### Repo Structure
 ```
 COMPUTER-VISION
 ├── assets/                    
@@ -68,7 +68,7 @@ COMPUTER-VISION
 └── styles.py                   # Cinematic Glassmorphism CSS
 ```
 
-# ML Model Architecture Overview
+### ML Model Architecture Overview
 
 **Model**: ``sequential_11``
 
@@ -114,7 +114,7 @@ COMPUTER-VISION
 
 * **ROC AUC (0.96):** The model has a **96% likelihood** of correctly ranking a random pneumonia case higher than a random normal case, proving the model is highly effective at distinguishing between the two classes.
 
-### **Confusion Matrix**
+**Confusion Matrix**
 The matrix below visualizes the raw counts of the model’s predictions compared to the actual clinical ground truth.
 
 | Actual \ Predicted | NORMAL (Predicted) | PNEUMONIA (Predicted) |
@@ -122,7 +122,7 @@ The matrix below visualizes the raw counts of the model’s predictions compared
 | **NORMAL (Actual)** | **199** (True Negatives) | **35** (False Positives) |
 | **PNEUMONIA (Actual)** | **20** (False Negatives) | **370** (True Positives) |
 
-## PNEUMA AI Process & Methodology
+### PNEUMA AI Process & Methodology
 
 ```
 ┌──────────────┐      ┌────────────────┐      ┌──────────────┐      ┌──────────────┐
@@ -135,33 +135,33 @@ The matrix below visualizes the raw counts of the model’s predictions compared
 The application follows a modular "Decoupled" approach, where the diagnostic result is prioritized for speed, followed by a secondary explainability layer.
 
 
-### I. Biometric Validation Layer
+**I. Biometric Validation Layer**  
 Before the PNEUMA AI processes the image, the system performs a quality check using OpenCV. Standard X-rays are nearly 100% grayscale; the app calculates color saturation and pixel intensity to verify the upload.
 
 **Why this is important**: This prevents "Out-of-Distribution" errors. If a user uploads a random color photo (like a raccoon or a landscape), the system triggers a high-opacity warning instead of providing a false medical diagnosis.
 
-### II. CNN Diagnostic Engine 
+**II. CNN Diagnostic Engine**   
 The core logic uses a Custom Deep Convolutional Neural Network (CNN).
 
 - **Prediction**: The model returns a sigmoid confidence score. Scores above 0.5 trigger a "Pneumonia Detected" status, while lower scores indicate a "Normal" status.
 - **Preprocessing**: Images are normalized to a scale of 0 to 1 and resized to $150 \times 150$ pixels to match the input shape of the trained layers.
 
-### III. Explainable AI (Grad-CAM) 
+**III. Explainable AI (Grad-CAM)**    
 To ensure the PNEUMA AI is not a "black box," I implemented Grad-CAM (Gradient-weighted Class Activation Mapping).
 - **Visual Transparency**: The system identifies the last convolutional layer (in this case ``conv2d_35``) and calculates the gradients to see which pixels influenced the decision most.
 
 - **Diagnostic Overlay**: A "Jet" colormap heatmap is generated and overlayed on the original radiograph, showing the exact areas (lung lobes) the PNEUMA AI focused on.
 
-### IV. Cinematic User Interface
+**IV. Cinematic User Interface**  
 The frontend is built with Streamlit, featuring a custom CSS injection for a "Glassmorphism" look.
 
 - **Interactive Analytics**: Users can toggle a "System Analytics" view to see the *Confusion Matrix* and a *Biometric Radar chart*, showing the model's Precision, Recall, and F1-Score.
 
 - **Session Management**: Using ``st.session_state``, the app maintains the diagnostic sequence across reruns, ensuring a smooth transition from upload to result.
 
-## **Technical implementation**
+### **Technical implementation**
 
-### **I. Input Guardrail (Biometric Validation)**
+**I. Biometric Validation**
 To maintain diagnostic integrity, the system implements an **OpenCV**-based pre-processing layer to filter "Out-of-Distribution" (OOD) data. By analyzing color saturation and pixel intensity, <span style="color:red">the system rejects non-medical images that do not match the expected grayscale profile of a radiograph.</span>
 
 **Note**: This check ensures only real X-rays are analyzed. While some digital X-rays have a tiny bit of color, a very colorful image will be rejected as "not an X-ray." If you find that your specific images are being blocked, you can easily adjust the saturation and intensity numbers in the code to make the filter more or less strict.
@@ -191,7 +191,7 @@ def is_valid_xray(img):
         
     return True
 ```
-### **II. Explainable AI: Grad-CAM Visualization**
+**II. Explainable AI: Grad-CAM Visualization**
 The system identifies the regions of the lung most influential to the diagnosis. It maps the gradients of the final prediction back to the last convolutional layer (``conv2d_35``).
 
 ```python
@@ -227,10 +227,10 @@ def get_gradcam_heatmap(img_array, model, last_conv_layer_name):
     return heatmap.numpy()
 ```
 
-## **Conclusion:**  
+### **Conclusion:**  
 PNEUMA AI utilizes a Sequential CNN architecture (19.1M parameters) to automate pneumonia detection with a **91% test accuracy**. By optimizing for a **0.95 Recall**, the model effectively minimizes Type II errors, while a **0.9606 ROC AUC** confirms superior class separability and robust feature mapping. The system integrates Grad-CAM explainability to visualize activation gradients from the final convolutional layer, ensuring diagnostic transparency. Deployment is managed via Streamlit and Git LFS, achieving a low-latency inference of ~375ms per radiograph.
 
-## **Future Improvements:**  
+### **Future Improvements:**  
 
 - *Multi-Class Classification*: Transition from binary (Normal/Pneumonia) to multi-label classification to identify specific types of pneumonia (Bacterial vs. Viral) or other lung pathologies like COVID-19 and Tuberculosis.
 
@@ -238,14 +238,14 @@ PNEUMA AI utilizes a Sequential CNN architecture (19.1M parameters) to automate 
 
 - **GPU Acceleration Optimization**: Transition to a specific TensorFlow-GPU compatible version (e.g., v2.10 or lower for native Windows support or specific Linux CUDA-mapped builds) to utilize NVIDIA hardware. This project currently utilizes version 2.20.0. 
 
-## **Timeline**
+### **Timeline**
 This solo project was completed over 5 days.
 
-## **Personal Situation**
+### **Personal Situation**
 This project was completed as part of the AI & Data Science Bootcamp at BeCode.org.
 
 **Connect** with me on [LinkedIn](https://www.linkedin.com/in/zivile-butkute/).
 
-## Resources
+### Resources
 
 App Background: [Unsplash](https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1920&q=80)
