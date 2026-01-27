@@ -293,7 +293,7 @@ if st.session_state.get('show_analytics', False):
 
     with col_right:
         # SUB-TITLE
-        st.markdown("<h3 style='text-align: center; color: white; font-weight: 100; letter-spacing: 5px; text-transform: uppercase; font-size: 1rem;'>BIOMETRIC METRICS</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='text-align: center; color: white; font-weight: 100; letter-spacing: 5px; text-transform: uppercase; font-size: 1rem;'>BIOMETRICS</h3>", unsafe_allow_html=True)
 
         # --- BIOMETRIC RADAR ---
         categories = ['Precision', 'Recall', 'F1-Score', 'Accuracy', 'Specificity']
