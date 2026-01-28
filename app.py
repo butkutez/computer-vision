@@ -101,7 +101,7 @@ def is_valid_xray(img):
         
     return True
 
-# --- FIX: Initialize uploader_key if it doesn't exist ---
+# Initialize uploader_key if it doesn't exist
 if 'uploader_key' not in st.session_state:
     st.session_state.uploader_key = 0
 
@@ -127,7 +127,7 @@ with col_main:
     """, unsafe_allow_html=True)
     
 
-    # --- FIX: Added the key parameter here ---
+    # Added the key parameter
     uploaded_file = st.file_uploader(
         "", 
         type=["jpg", "png", "jpeg"], 
@@ -137,9 +137,8 @@ with col_main:
     if uploaded_file:
         image = Image.open(uploaded_file).convert("RGB")
         
-        # --- NEW: VALIDATION CHECK ---
+        # Validation check
         if not is_valid_xray(image):
-            # Styled Error Box: Fixed width, solid background, centered
             st.markdown("""
                 <div style='
                     width: 600px; 
@@ -163,12 +162,10 @@ with col_main:
                     st.session_state.uploader_key += 1
                     st.rerun()
         else:
-            # --- PROCEED WITH NORMAL LOGIC ---
             if uploaded_file.name != st.session_state.last_file:
                 st.session_state.diagnosed = False      
                 st.session_state.last_file = uploaded_file.name 
 
-            # --- VIEW 1: INITIAL UPLOAD ---
             if not st.session_state.diagnosed:
                 _, tight_col, _ = st.columns([1, 2, 1])
                 with tight_col:
@@ -177,7 +174,6 @@ with col_main:
                         st.session_state.diagnosed = True
                         st.rerun()
 
-        # --- VIEW 2: ANALYSIS (Large Side-by-Side) ---
         if st.session_state.diagnosed:
             # Heatmap & Prediction Logic
             size = (150, 150)
@@ -206,14 +202,13 @@ with col_main:
             conf_val = confidence*100 if confidence > 0.5 else (1-confidence)*100
             st.markdown(get_result_orb(orb_color, result_text, conf_val), unsafe_allow_html=True) 
             
-            # --- RESET LOGIC ---
+            # reset logic
             st.markdown("<br>", unsafe_allow_html=True)
             _, btn_reset_col, _ = st.columns([1.5, 1, 1.5])
             with btn_reset_col:
                 if st.button("NEW ANALYSIS", use_container_width=True):
                     st.session_state.diagnosed = False
                     st.session_state.last_file = None
-                    # This now works because we initialized it at the top
                     st.session_state.uploader_key += 1 
                     st.rerun()
     else:
@@ -246,17 +241,13 @@ with st.sidebar:
 # 7. MERGED ANALYTICS DISPLAY (FINAL BALANCED VERSION)
 if st.session_state.get('show_analytics', False):
     st.markdown("---")
-    
-    # MAIN HEADER
     st.markdown("<h2 style='text-align: center; color: white; font-weight: 100; letter-spacing: 10px; text-transform: uppercase;'>SYSTEM ANALYTICS</h2>", unsafe_allow_html=True)
-
     col_left, spacer, col_right = st.columns([4, 0.5, 4])
 
     with col_left:
-        # SUB-TITLE
         st.markdown("<h3 style='text-align: center; color: white; font-weight: 100; letter-spacing: 5px; text-transform: uppercase; font-size: 1rem;'>CONFUSION MATRIX</h3>", unsafe_allow_html=True)
         
-        # --- CONFUSION MATRIX ---
+        # Confusion Matrix
         z = MODEL_RESULTS["matrix"]
         fig_matrix = ff.create_annotated_heatmap(
             z, x=["NORMAL", "PNEUMONIA"], y=["NORMAL", "PNEUMONIA"], 
@@ -277,8 +268,6 @@ if st.session_state.get('show_analytics', False):
             fig_matrix.layout.annotations[i].font.color = 'white'
 
         st.plotly_chart(fig_matrix, use_container_width=True, config={'displayModeBar': False})
-
-        # EXPLANATION TEXT (LEFT BOX - General Matrix Info)
         st.markdown("""
         <div style='background: rgba(255,255,255,0.05); padding: 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(15px); min-height: 380px;'>
             <p style='color: #00f2ff; font-size: 0.9rem; letter-spacing: 2px; margin-bottom: 10px; font-weight: bold;'>DIAGNOSTIC ARCHITECTURE</p>
@@ -292,10 +281,9 @@ if st.session_state.get('show_analytics', False):
         """, unsafe_allow_html=True)
 
     with col_right:
-        # SUB-TITLE
         st.markdown("<h3 style='text-align: center; color: white; font-weight: 100; letter-spacing: 5px; text-transform: uppercase; font-size: 1rem;'>BIOMETRICS</h3>", unsafe_allow_html=True)
 
-        # --- BIOMETRIC RADAR ---
+        # Biometrics
         categories = ['Precision', 'Recall', 'F1-Score', 'Accuracy', 'Specificity']
         tn, fp, fn, tp = MODEL_RESULTS["matrix"][0][0], MODEL_RESULTS["matrix"][0][1], MODEL_RESULTS["matrix"][1][0], MODEL_RESULTS["matrix"][1][1]
         pne_values = [MODEL_RESULTS["pneumonia"]["precision"], MODEL_RESULTS["pneumonia"]["recall"], MODEL_RESULTS["pneumonia"]["f1"], MODEL_RESULTS["accuracy"], tn/(tn+fp)]
@@ -319,8 +307,6 @@ if st.session_state.get('show_analytics', False):
             margin=dict(t=20, b=80, l=80, r=80)
         )
         st.plotly_chart(fig_radar, use_container_width=True, config={'displayModeBar': False})
-
-        # EXPLANATION TEXT (RIGHT BOX - Definitions)
         st.markdown("""
         <div style='background: rgba(255,255,255,0.05); padding: 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(15px); min-height: 380px;'>
             <p style='color: #00f2ff; font-size: 0.9rem; letter-spacing: 2px; margin-bottom: 10px; font-weight: bold;'>METRIC PARAMETERS</p>
@@ -346,7 +332,7 @@ if st.session_state.get('show_analytics', False):
         </div>
         """, unsafe_allow_html=True)
 
-    # CENTERED CLOSE BUTTON
+    # Close button
     st.markdown("<br>", unsafe_allow_html=True)
     _, col_btn_center, _ = st.columns([1, 1, 1])
     with col_btn_center:
