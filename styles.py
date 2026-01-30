@@ -306,10 +306,8 @@ div[data-testid="stPlotlyChart"] {
     overflow: hidden !important; 
 }
 
-
 </style>
     """
-
 HEADER_HTML = """
     <div style="width: 100%; display: flex; justify-content: center;">
         <p style='
@@ -326,8 +324,6 @@ HEADER_HTML = """
         </p>
     </div>
     """
-
-
 
 def get_result_orb(orb_color, result_text, conf_val):
     """Generates the HTML for the diagnostic result orb."""
